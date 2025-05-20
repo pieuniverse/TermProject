@@ -1,20 +1,26 @@
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerCtrl : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public float mouseSensitivity = 100f;
     public float gravity = -9.81f;
     public float jumpHeight = 2f;
 
+    private float h,v;
+
     private CharacterController controller;
     private float rotationY = 0f;
     private Vector3 velocity;
+
+    private Animation anim;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
+        anim = GetComponent<Animation>();
+        anim.Play("Jog Forward");
     }
 
     void Update()
@@ -22,14 +28,21 @@ public class PlayerController : MonoBehaviour
         MovePlayer();
         RotatePlayer();
         ApplyGravityAndJump();
+        PlayerAnim(h, v);
+    }
+
+    void PlayerAnim(float h, float v)
+    {
+        if (v >= 0.1f) anim.CrossFade("Jog Forward", 0.25f);
+        else anim.CrossFade("Jog Forward", 0.25f);
     }
 
     void MovePlayer()
     {
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        h = Input.GetAxis("Horizontal");
+        v = Input.GetAxis("Vertical");
 
-        Vector3 move = transform.right * moveX + transform.forward * moveZ;
+        Vector3 move = transform.right * h + transform.forward * v;
         controller.Move(move * moveSpeed * Time.deltaTime);
     }
 

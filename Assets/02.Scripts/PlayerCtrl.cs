@@ -19,7 +19,7 @@ public class PlayerCtrl : MonoBehaviour
     public float mouseSensitivity = 100f;
     public float gravity = -9.81f;
     public float jumpHeight = 2f;
-    private bool jump = false;
+    //private bool jump = false;
 
     private float h, v;
 
@@ -34,23 +34,7 @@ public class PlayerCtrl : MonoBehaviour
         controller = GetComponent<CharacterController>();
         Cursor.lockState = CursorLockMode.Locked;
         anim = GetComponent<Animator>();
-        //StartCoroutine(CheckPlayerState());
         StartCoroutine(PlayerAction());
-    }
-
-    IEnumerator CheckPlayerState()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(0.3f);
-            
-            if (v >= 0.1f) { state = State.FORWARD; }
-            else if (v <= -0.1f) { state = State.BACKWARD; }
-            else if (h >= 0.1f) { state = State.RIGHT; }
-            else if (h <= -0.1f) { state = State.LEFT; }
-            else if (jump == true) { state = State.JUMP; }
-            else { state = State.IDLE; }
-        }
     }
 
     IEnumerator PlayerAction()
@@ -63,12 +47,6 @@ public class PlayerCtrl : MonoBehaviour
             anim.SetBool("Left", Input.GetKey(KeyCode.A));
             anim.SetBool("Right", Input.GetKey(KeyCode.D));
 
-            // 점프 트리거 처리 (한 번만 발동)
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                anim.SetTrigger("Jump");
-            }
-
             // 아무 키도 안 눌렀을 때만 Idle
             bool anyMove = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S)
                         || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D);
@@ -78,51 +56,24 @@ public class PlayerCtrl : MonoBehaviour
         }
     }
 
-
-
-    // IEnumerator PlayerAction()
-    // {
-    //     while (true)
-    //     {
-    //         switch (state)
-    //         {
-    //             case State.IDLE:
-    //                 anim.SetBool("Idle", true);
-    //                 break;
-    //             case State.FORWARD:
-    //                 anim.SetBool("Forward", true);
-    //                 break;
-    //             case State.BACKWARD:
-    //                 anim.SetBool("Backward", true);
-    //                 break;
-    //             case State.RIGHT:
-    //                 anim.SetBool("Right", true);
-    //                 break;
-    //             case State.LEFT:
-    //                 anim.SetBool("Left", true);
-    //                 break;
-    //             case State.JUMP:
-    //                 anim.SetBool("Jump", true);
-    //                 break;
-    //         }
-    //         yield return new WaitForSeconds(0.3f);
-    //     }
-    // }
-
     void Update()
     {
         MovePlayer();
         RotatePlayer();
-        ApplyGravityAndJump();
+        ApplyGravity();
+
+        // 점프 트리거 처리 (한 번만 발동)
+        if (Input.GetKeyDown(KeyCode.Space) && controller.isGrounded)
+        {
+            anim.SetTrigger("Jump");
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
     }
 
     void MovePlayer()
     {
         h = Input.GetAxis("Horizontal");
         v = Input.GetAxis("Vertical");
-
-        // Vector3 move = transform.right * h + transform.forward * v;
-        // controller.Move(move * moveSpeed * Time.deltaTime);
     }
 
     void RotatePlayer()
@@ -132,24 +83,16 @@ public class PlayerCtrl : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, rotationY, 0f);
     }
 
-    void ApplyGravityAndJump()
+    void ApplyGravity()
+{
+    if (controller.isGrounded && velocity.y < 0)
     {
-        if (controller.isGrounded)
-        {
-            if (velocity.y < 0)
-                velocity.y = -2f;
-
-            // 스페이스바 입력 시 점프
-            if (Input.GetButtonDown("Jump"))
-            {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                jump = true;
-            }
-        }
-
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        velocity.y = -2f;
     }
+
+    velocity.y += gravity * Time.deltaTime;
+    controller.Move(velocity * Time.deltaTime);
+}
 
 }
 

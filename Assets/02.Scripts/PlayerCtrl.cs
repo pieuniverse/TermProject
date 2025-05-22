@@ -18,8 +18,7 @@ public class PlayerCtrl : MonoBehaviour
     public float moveSpeed = 5f;
     public float mouseSensitivity = 100f;
     public float gravity = -9.81f;
-    public float jumpHeight = 2f;
-    //private bool jump = false;
+    public float jumpHeight = 1.5f;
 
     private float h, v;
 
@@ -84,15 +83,15 @@ public class PlayerCtrl : MonoBehaviour
     }
 
     void ApplyGravity()
-{
-    if (controller.isGrounded && velocity.y < 0)
     {
-        velocity.y = -2f;
-    }
+        if (controller.isGrounded && velocity.y < 0)
+        {
+            velocity.y = -2f;
+        }
 
-    velocity.y += gravity * Time.deltaTime;
-    controller.Move(velocity * Time.deltaTime);
-}
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+    }
 
 }
 

@@ -5144,10 +5144,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   state: 0
-  moveSpeed: 30
+  moveSpeed: 1
   mouseSensitivity: 100
   gravity: -9.81
-  jumpHeight: 2.5
+  jumpHeight: 2
 --- !u!1001 &1858484379
 PrefabInstance:
   m_ObjectHideFlags: 0

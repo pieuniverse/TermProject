@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemyCtrl : MonoBehaviour
@@ -10,6 +11,34 @@ public class EnemyCtrl : MonoBehaviour
 
     private Animator animator;
     private bool isTurning = false;
+
+    [Header("시야 설정")]
+    public float viewAngle = 90f; // 시야각 (도 단위)
+    public float viewDistance = 5f; // 시야 거리
+    public LayerMask targetMask; // 감지할 레이어 (플레이어)
+    public LayerMask obstacleMask; // 장애물 레이어
+
+    public Transform eyePosition; // 눈 위치 기준점 (없으면 this.transform 사용)
+    private Transform targetPlayer = null;
+
+    void OnDrawGizmosSelected()
+    {
+        // 시야각 시각화를 위한 기점
+        Transform origin = eyePosition != null ? eyePosition : transform;
+
+        // 시야 거리 원
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(origin.position, viewDistance);
+
+        // 시야각 선 (좌/우)
+        Vector3 forward = transform.forward;
+        Vector3 leftDir = Quaternion.Euler(0, -viewAngle / 2f, 0) * forward;
+        Vector3 rightDir = Quaternion.Euler(0, viewAngle / 2f, 0) * forward;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawLine(origin.position, origin.position + leftDir * viewDistance);
+        Gizmos.DrawLine(origin.position, origin.position + rightDir * viewDistance);
+    }
 
     void Start()
     {
@@ -30,22 +59,41 @@ public class EnemyCtrl : MonoBehaviour
         // 반환점 도착 처리
         if (Vector3.Distance(transform.position, target) < 0.1f)
         {
-            //StartCoroutine(PlayTurnAnimation());
             // 다음 목표 지점 변경
             target = (target == pointA.position) ? pointB.position : pointA.position;
             transform.Rotate(0f, 180f, 0f);
         }
+
+        CheckView();
     }
 
-    // 반환점에서 Turn 애니메이션 실행
-    private System.Collections.IEnumerator PlayTurnAnimation()
+    void CheckView()
     {
-        isTurning = true;
-        //animator.SetTrigger("Turn"); // 상태머신에서 Turn 트리거 활성화
+        Transform origin = eyePosition != null ? eyePosition : transform;
+        Collider[] targetsInView = Physics.OverlapSphere(origin.position, viewDistance, targetMask);
 
-        // 애니메이션 B가 끝날 때까지 대기 (길이에 따라 수정)
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+        targetPlayer = null; // 초기화
 
-        isTurning = false;
+        foreach (Collider col in targetsInView)
+        {
+            Transform potentialTarget = col.transform;
+            Vector3 dirToTarget = (potentialTarget.position - origin.position).normalized;
+            float angle = Vector3.Angle(transform.forward, dirToTarget);
+
+            if (angle < viewAngle / 2f)
+            {
+                float distance = Vector3.Distance(origin.position, potentialTarget.position);
+
+                if (!Physics.Raycast(origin.position, dirToTarget, distance, obstacleMask))
+                {
+                    targetPlayer = potentialTarget;
+                    Debug.Log("플레이어 감지됨: " + targetPlayer.name);
+                    
+                    break;
+                }
+            }
+        }
     }
+
+
 }

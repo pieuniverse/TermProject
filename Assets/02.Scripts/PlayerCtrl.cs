@@ -15,7 +15,7 @@ public class PlayerCtrl : MonoBehaviour
 
     public State state = State.IDLE;
 
-    public float moveSpeed = 1f;
+    public float moveSpeed = 5f;
     public float mouseSensitivity = 100f;
     public float gravity = -9.81f;
     public float jumpHeight = 1.5f;
@@ -25,7 +25,6 @@ public class PlayerCtrl : MonoBehaviour
     private CharacterController controller;
     private float rotationY = 0f;
     private Vector3 velocity;
-    private Vector3 moveDir;
 
     private Animator anim;
 
@@ -66,7 +65,6 @@ public class PlayerCtrl : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && controller.isGrounded)
         {
             anim.SetTrigger("Jump");
-            velocity = moveDir * moveSpeed; // 점프 방향 유지
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
     }
@@ -75,11 +73,7 @@ public class PlayerCtrl : MonoBehaviour
     {
         h = Input.GetAxis("Horizontal");
         v = Input.GetAxis("Vertical");
-
-        moveDir = transform.right * h + transform.forward * v;
-        controller.Move(moveDir * moveSpeed * Time.deltaTime);
     }
-
 
     void RotatePlayer()
     {
@@ -90,12 +84,9 @@ public class PlayerCtrl : MonoBehaviour
 
     void ApplyGravity()
     {
-        if (controller.isGrounded)
+        if (controller.isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
-            
-            velocity.x = 0f;
-            velocity.z = 0f;
         }
 
         velocity.y += gravity * Time.deltaTime;
@@ -103,4 +94,3 @@ public class PlayerCtrl : MonoBehaviour
     }
 
 }
-

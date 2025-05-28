@@ -1,15 +1,13 @@
 using UnityEngine;
 
-public class MyGizmos : MonoBehaviour
+public class RemoveBullet : MonoBehaviour
 {
-    public Color _color = new Color(1f, 0f, 0f, 0.2f);
-    public float _radius = 0.1f;
-
-
-    void OnDrawGizmos()
+    void OllisionEnter(Collision coll)
     {
-        Gizmos.color = _color;
-        Gizmos.DrawSphere(transform.position, _radius);
+        if (coll.collider.CompareTag("BULLET"))
+        {
+            Destroy(coll.gameObject);
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

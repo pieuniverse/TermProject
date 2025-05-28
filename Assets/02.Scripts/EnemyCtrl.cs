@@ -21,6 +21,12 @@ public class EnemyCtrl : MonoBehaviour
     public Transform eyePosition; // 눈 위치 기준점 (없으면 this.transform 사용)
     private Transform targetPlayer = null;
 
+    [Header("총알 발사 관련")]
+    public FireCtrl fireCtrl; // FireCtrl 컴포넌트 연결
+    public float fireCooldown = 2f; // 발사 간격
+    private float lastFireTime = -999f;
+    bool isPlayerDetected = false;
+
     void OnDrawGizmosSelected()
     {
         // 시야각 시각화를 위한 기점
@@ -86,14 +92,33 @@ public class EnemyCtrl : MonoBehaviour
 
                 if (!Physics.Raycast(origin.position, dirToTarget, distance, obstacleMask))
                 {
+                    isPlayerDetected = true;
+                    animator.speed = 0f;
+                    speed = 0f;
                     targetPlayer = potentialTarget;
                     Debug.Log("플레이어 감지됨: " + targetPlayer.name);
-                    
+
+                    TryFire();
                     break;
                 }
             }
         }
+
+        if (targetPlayer == null)
+        {
+            isPlayerDetected = false;
+            animator.speed = 1f;
+            speed = 1f;
+        }
     }
 
-
+    void TryFire()
+    {
+        if (fireCtrl == null) return;
+        if (Time.time - lastFireTime > fireCooldown)
+        {
+            fireCtrl.Fire();
+            lastFireTime = Time.time;
+        }
+    }
 }

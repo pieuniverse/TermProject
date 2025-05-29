@@ -28,11 +28,17 @@ public class PlayerCtrl : MonoBehaviour
 
     private Animator anim;
 
+    public float deathFallHeight = 10f;
+    private float fallStartY = 0f;
+    private bool isFalling = false;
+    private Rigidbody rb;
+
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        Cursor.lockState = CursorLockMode.Locked;
         anim = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody>();
+        Cursor.lockState = CursorLockMode.Locked;
         StartCoroutine(PlayerAction());
     }
 
@@ -67,6 +73,46 @@ public class PlayerCtrl : MonoBehaviour
             anim.SetTrigger("Jump");
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
+
+        //낙사 감지
+        if (!isFalling && !IsGrounded())
+        {
+            // 땅에서 떨어짐 → 낙하 시작
+            isFalling = true;
+            fallStartY = transform.position.y;
+        }
+
+        if (isFalling && IsGrounded())
+        {
+            // 착지함 → 낙하 종료
+            float fallDistance = fallStartY - transform.position.y;
+
+            if (fallDistance > deathFallHeight)
+            {
+                GameOver();
+            }
+
+            isFalling = false;
+        }
+    }
+
+    bool IsGrounded()
+    {
+        return controller.isGrounded;
+    }
+
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hit.gameObject.CompareTag("Enemy")) // "Enemy"는 NPC의 태그
+        {
+            GameOver();
+        }
+    }
+
+
+    void GameOver()
+    {
+        Debug.Log("게임 오버");
     }
 
     void MovePlayer()
